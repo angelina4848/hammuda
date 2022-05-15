@@ -1,5 +1,5 @@
 
-#define rain_sensorss
+#define rain_sensor 5
 
 #define moisture_limit 800
 
