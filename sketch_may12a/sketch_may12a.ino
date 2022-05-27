@@ -21,7 +21,10 @@ int filled;
 #include "TimerOne.h"
 Encoder enc1(CLK, DT, SW);  
 
+#include <Wire.h>
+#include <Adafruit_INA219.h>
 
+Adafruit_INA219 ina219;
 
 
 
@@ -79,11 +82,19 @@ Serial.begin(9600);
   
   //Encender la luz de fondo.
   lcd.backlight();
+
+
+  uint32_t currentFrequency;
   
   // Escribimos el Mensaje en el LCD.
   lcd.print("t(C)=    h(%)=");
   Timer1.initialize(1000);            
   Timer1.attachInterrupt(timerIsr);   
+
+  if (! ina219.begin()) {
+    Serial.println("Failed to find INA219 chip");
+    while (1) { delay(10); }
+  }
 }
 void timerIsr() {   
   enc1.tick();     
@@ -171,6 +182,17 @@ switch(page){
 }
 Serial.println(page);
 if(millis()-tmr5 >=2000){
+   float shuntvoltage = 0;
+  float busvoltage = 0;
+  float current_mA = 0;
+  float loadvoltage = 0;
+  float power_mW = 0;
+
+  shuntvoltage = ina219.getShuntVoltage_mV();
+  busvoltage = ina219.getBusVoltage_V();
+  current_mA = ina219.getCurrent_mA();
+  power_mW = ina219.getPower_mW();
+  loadvoltage = busvoltage + (shuntvoltage / 1000);
   tmr5 = millis();
   Serial.print(s1);
     Serial.print(",");
