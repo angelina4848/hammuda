@@ -1,35 +1,51 @@
-#include <LiquidCrystal_I2C.h>
+#include <LiquidCrystal_I2C.h>    //incluir librería de la pantalla
 LiquidCrystal_I2C lcd(0x27,16,2); 
 
+uint32_t tmr1;
+uint32_t tmr2;
+uint32_t tmr3;
+uint32_t tmr4;
+uint32_t tmr5;
 
-#define CLK 10
+int temperature;
+int humidity;
+String rain;
+float power;
+int battery;
+int filled;
+
+#define CLK 10              
 #define DT 9
 #define SW 8
-
-#include "GyverEncoder.h"
+#include "GyverEncoder.h"         //declarar variables para el encoder
 #include "TimerOne.h"
 Encoder enc1(CLK, DT, SW);  
 
-#define rain_sensor 5
-
-#define moisture_limit 800
 
 
 
 
-#define r1 2
+
+#define rain_sensor 5             //pin para sensor de lluvia
+
+#define moisture_limit 400        //empezar a regar en este nivel de humedad
+
+
+
+
+#define r1 2                      //declarar pines para los reles
 #define r2 3
 #define r3 4
 #define r4 5
 
 
-int val_1;
+int val_1;                       //valores para los sensores
 int val_2;
 int val_3;
 int val_4;
 
 
-int s1;
+int s1;                         //valores para los sensores de humedad de tierra
 int s2;
 int s3;
 int s4;
@@ -38,6 +54,7 @@ int temp;
 int hum;
 
 int page = 1;
+
 void setup() {
   // declaración de reles
 pinMode(r1, OUTPUT);
@@ -45,7 +62,16 @@ pinMode(r2, OUTPUT);
 pinMode(r3, OUTPUT);
 pinMode(r4, OUTPUT);
 
+pinMode(s1, INPUT);
+pinMode(s2, INPUT);
+pinMode(s3, INPUT);
+pinMode(s4, INPUT);
 enc1.setType(TYPE2);
+
+digitalWrite(r1, 1);
+digitalWrite(r2, 1);
+digitalWrite(r3, 1);
+digitalWrite(r4, 1);
 
 Serial.begin(9600);
   // Inicializar el LCD
@@ -56,11 +82,11 @@ Serial.begin(9600);
   
   // Escribimos el Mensaje en el LCD.
   lcd.print("t(C)=    h(%)=");
-  Timer1.initialize(1000);            // установка таймера на каждые 1000 микросекунд (= 1 мс)
-  Timer1.attachInterrupt(timerIsr);   // запуск таймера
+  Timer1.initialize(1000);            
+  Timer1.attachInterrupt(timerIsr);   
 }
-void timerIsr() {   // прерывание таймера
-  enc1.tick();     // отработка теперь находится здесь
+void timerIsr() {   
+  enc1.tick();     
 }
 void loop() {
   
@@ -80,17 +106,29 @@ void loop() {
   s4 = analogRead(A3);
 
   
-if(s1 >= moisture_limit){
+if((s1 >= moisture_limit) and (millis()-tmr1 >=10000)){
+  tmr1 = millis();
+  digitalWrite(r1, 0);
+  delay(1500);
   digitalWrite(r1, 1);
 }
-if(s2 >= moisture_limit){
+if((s2 >= moisture_limit) and (millis()-tmr2 >=10000)){
+  tmr2 = millis();
+  digitalWrite(r2, 0);
+  delay(1500);
   digitalWrite(r2, 1);
 }
-if(s3 >= moisture_limit){
-  digitalWrite(r3, 1);
+if((s3 >= moisture_limit) and (millis()-tmr3 >=10000)){
+  tmr2 = millis();
+  digitalWrite(r2, 0);
+  delay(1500);
+  digitalWrite(r2, 1);
 }
-if(s4 >= moisture_limit){
-  digitalWrite(r4, 1);
+if((s4 >= moisture_limit) and (millis()-tmr4 >=10000)){
+  tmr2 = millis();
+  digitalWrite(r2, 0);
+  delay(1500);
+  digitalWrite(r2, 1);
 }
 
 if(enc1.isRight()){
@@ -132,4 +170,28 @@ switch(page){
   
 }
 Serial.println(page);
+if(millis()-tmr5 >=2000){
+  tmr5 = millis();
+  Serial.print(s1);
+    Serial.print(",");
+    Serial.print(s2);
+    Serial.print(",");
+    Serial.print(s3);
+    Serial.print(",");
+    Serial.print(s4);
+
+    Serial.print(",");
+    Serial.print(temperature);
+    Serial.print(",");
+    Serial.print(humidity);
+    Serial.print(",");
+    Serial.print(rain);
+    Serial.print(",");
+    Serial.print(power);
+    Serial.print(",");
+    Serial.print(battery);
+    Serial.print(",");
+    Serial.print(filled);
+    Serial.print("\n");
+}
 }
