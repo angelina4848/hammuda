@@ -1,6 +1,15 @@
 #include <LiquidCrystal_I2C.h>    //incluir librería de la pantalla
 LiquidCrystal_I2C lcd(0x27,16,2); 
 
+
+#include <DHT.h>
+
+
+
+#define DHTPIN 2
+#define DHTTYPE    DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
 uint32_t tmr1;
 uint32_t tmr2;
 uint32_t tmr3;
@@ -76,6 +85,8 @@ digitalWrite(r2, 1);
 digitalWrite(r3, 1);
 digitalWrite(r4, 1);
 
+dht.begin(); 
+
 Serial.begin(9600);
   // Inicializar el LCD
   lcd.init();
@@ -101,7 +112,9 @@ void timerIsr() {
 }
 void loop() {
   
-
+float hum = dht.readHumidity();
+  // Read temperature as Celsius (the default)
+  float temp = dht.readTemperature();
    
 
   
@@ -203,15 +216,15 @@ if(millis()-tmr5 >=2000){
     Serial.print(s4);
 
     Serial.print(",");
-    Serial.print(temperature);
+    Serial.print(temp);
     Serial.print(",");
-    Serial.print(humidity);
+    Serial.print(hum);
     Serial.print(",");
     Serial.print(rain);
     Serial.print(",");
-    Serial.print(power);
+    Serial.print(power_mW*1000);
     Serial.print(",");
-    Serial.print(battery);
+    Serial.print(busvoltage);
     Serial.print(",");
     Serial.print(filled);
     Serial.print("\n");
