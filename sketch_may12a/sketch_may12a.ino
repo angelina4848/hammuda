@@ -1,6 +1,14 @@
 #include <LiquidCrystal_I2C.h>    //incluir librería de la pantalla
 LiquidCrystal_I2C lcd(0x27,16,2); 
 
+#include <NewPing.h>
+
+#define TRIGGER_PIN  12  // Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN     11  // Arduino pin tied to echo pin on the ultrasonic sensor.
+#define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
+
 
 #include <DHT.h>
 
@@ -15,6 +23,7 @@ uint32_t tmr2;
 uint32_t tmr3;
 uint32_t tmr4;
 uint32_t tmr5;
+uint32_t tmr_ping;
 
 int temperature;
 int humidity;
@@ -110,13 +119,20 @@ Serial.begin(9600);
 void timerIsr() {   
   enc1.tick();     
 }
+
+
+
+
+
 void loop() {
   
 float hum = dht.readHumidity();
   // Read temperature as Celsius (the default)
   float temp = dht.readTemperature();
    
-
+if(millis()-tmr_ping >= 100){
+  filled = sonar.ping_cm();
+}
   
   lcd.setCursor(5, 0);
   lcd.print(temp);
